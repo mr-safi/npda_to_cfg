@@ -12,3 +12,12 @@ filename2 = 'out.txt'
 wrfile = open(filename2 ,'w+')
 cfg.convert_from_pda(pda , wrfile)
 
+# part 2
+inputtext = "abba"
+cfg.detect_word(inputtext , wrfile)
+inputtext = "abb"
+cfg.detect_word(inputtext , wrfile)
+inputtext = "ab"
+cfg.detect_word(inputtext , wrfile)
+
+wrfile.close()

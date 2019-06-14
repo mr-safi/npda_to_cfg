@@ -1,4 +1,7 @@
 import string
+import queue
+from util import Queue ,Stack
+
 
 class PDA:
     def __init__(self):
@@ -191,3 +194,143 @@ class CFG:
             res = strt + stackk + end + "->" + pe[1]
             file.write(res + "\n")
             # print(res)
+
+    def detect_word(self, text ,file):
+
+        cf_trans = self.transition_functions
+        cfg_trans = {}
+
+        # convert to standard  model
+        te = []
+        for a in cf_trans:
+            for bb in cf_trans.get(a):
+                bb = bb.replace("q","")
+                bb =  bb.replace(")(" , "),(")
+                te.append(bb)
+            cfg_trans[a] = list(te)
+            te.clear()
+        
+
+        #....dfs for find sol
+        ways = Stack()
+        header = Queue()
+        result = []
+        whichState = 0
+        topstack = '$'
+        tempStack =Stack()
+        # initialize stack
+        for a in text:
+             header.push(a)
+        
+        hed = header.list[0]
+        for Cond in cfg_trans:
+            if Cond[0] == whichState and Cond[1] == topstack:
+                for transAction in cfg_trans.get(Cond):
+                    symbol = transAction[0]
+
+                    if hed == symbol:
+                        if not ways.list.__contains__(Cond):
+                            ways.push(Cond)
+
+        path =""
+        level = 0
+        seen = True
+        decre = 0
+        notfond = False
+        trceSol =""
+
+        if len(text) ==1 :
+            if not ways.isEmpty() :
+                print("accept")
+                exit(0)
+            else:
+                print("NO")
+                exit(0)
+        #..................... main Loop.......................
+        while not ways.isEmpty():
+            flag = False
+            CurrentCond = ways.pop()
+            result.append(CurrentCond)
+
+            if seen:
+                if decre < len(text):
+                    hed = text[decre]
+                    decre = decre +1
+                else:
+                    hed = '_'
+
+            # print("hedd -- ====================================  ",hed ,decre)
+            # print("now --------------------- ",CurrentCond)
+            # print("ways ",ways.list)
+            if ways.isEmpty() :
+                path = path.replace("_","")
+                if path == text:
+                    notfond = False
+                    break
+                else:
+                    notfond = True
+                    break
+            empty=CurrentCond[1]
+            sol = path
+
+            if sol.replace("_","") == text and empty == topstack:
+                notfond = False
+                trceSol += path+str(CurrentCond) +"=>" +text
+                break
+
+            # if not cfg_trans.__contains__(CurrentCond):
+            #     if ways.isEmpty():
+            #         notfond = True
+            #         flag = True
+            #         break
+            #     else:
+            #         CurrentCond = ways.pop()
+
+            seen = False
+            for transAction in cfg_trans.get(CurrentCond):
+                symbol = transAction[0]
+
+                if symbol == hed :
+                    seen = True
+                    if not flag :
+                        trceSol += path +str(CurrentCond)+"=>"
+                        path += hed
+
+                        flag =True
+
+                    if ways.isEmpty():
+                        level += 1
+
+                    if len(transAction) > 2 :
+                        # path += symbol
+                        goSt = transAction[1:]
+                        goSt = goSt.split(",")
+                        for st in goSt:
+                            newCond = int(st[1]) , str(st[2]) ,int(st[3])
+                            #  ,,....................pruning Cond.......
+                            if not cfg_trans.__contains__(newCond):
+                                while not  tempStack.isEmpty():
+                                    tempStack.pop()
+                                break
+                            #  ..........................................
+                            tempStack.push(newCond)
+
+                    while not tempStack.isEmpty():
+                        t = tempStack.pop()
+                        ways.push(t)
+
+            if not seen:
+                notfond = True
+                break
+                # decre +=1
+
+        if notfond:
+            file.write("\nInput : "+text)
+            file.write("\nOutPut:\nFalse\n")
+            # print("Not Accept")
+        else:
+            # print(trceSol)
+            file.write("\nInput : "+text)
+            file.write("\nOutPut:\nTrue\n")
+            file.write(trceSol+"\n")
+            # print("Accept")
